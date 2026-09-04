@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#07060d">
+  <title>Pase de acceso</title>
+  <style>
+    /* Paleta sólida oscura y acentos */
+    :root {
+      --fondo:   #0e0e13;
+      --tarjeta: #17171f;
+      --borde:   #272733;
+      --linea:   #20202a;   /* el relleno de las insignias y los peldaños apagados */
+      --texto:   #eceaf2;
+      --tenue:   #8d8a9c;
+      --acento:  #8b5cf6;
+      --acento2: #a78bfa;
+      --exito:   #4ade80;
+      --aviso:   #fbbf24;
+      --alerta:  #fb7185;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; min-height: 100%; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--fondo); color: var(--texto);
+      display: flex; flex-direction: column; min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Barra de control para probar y personalizar los pasos fácilmente */
+    .toolbar {
+      background: #12121a;
+      border-bottom: 1px solid var(--borde);
+      padding: 8px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--tenue);
+      z-index: 100;
+    }
+    .toolbar-buttons {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .tool-btn {
+      background: var(--linea);
+      color: var(--texto);
+      border: 1px solid var(--borde);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s ease;
+    }
+    .tool-btn:hover {
+      background: var(--borde);
+      color: #fff;
+    }
+    .tool-btn.active {
+      background: var(--acento);
+      border-color: var(--acento);
+      color: #fff;
+    }
+    .tool-btn.toggle-hide {
+      background: transparent;
+      border-color: transparent;
+      color: var(--tenue);
+    }
+    .tool-btn.toggle-hide:hover {
+      color: var(--texto);
+    }
+
+    main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 26px 18px; }
+
+    /* --- la tarjeta ----------------------------------------------------------- */
+    .marco {
+      width: 100%; max-width: 400px; border-radius: 16px;
+      background: var(--tarjeta); border: 1px solid var(--borde);
+      box-shadow: 0 20px 50px rgba(0,0,0,.5);
+      animation: entra .4s cubic-bezier(.22,.9,.3,1) both;
+    }
+    .card { padding: 30px 26px 26px; text-align: center; }
+    @keyframes entra { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: none } }
+    @keyframes sube  { from { opacity: 0; transform: translateY(7px) } to { opacity: 1; transform: none } }
+
+    /* Animación escalonada */
+    .anim-fade > * { animation: sube .38s cubic-bezier(.22,.9,.3,1) both; }
+    .anim-fade > *:nth-child(1){animation-delay:.05s} .anim-fade > *:nth-child(2){animation-delay:.10s}
+    .anim-fade > *:nth-child(3){animation-delay:.15s} .anim-fade > *:nth-child(4){animation-delay:.20s}
+    .anim-fade > *:nth-child(5){animation-delay:.25s} .anim-fade > *:nth-child(6){animation-delay:.30s}
+    .anim-fade > *:nth-child(7){animation-delay:.35s} .anim-fade > *:nth-child(8){animation-delay:.40s}
+
+    /* --- el logo -------------------------------------------------------------- */
+    .marca { margin: 0 0 18px; }
+    .marca img {
+      width: 56px; height: 56px; border-radius: 15px; display: block; margin: 0 auto 9px;
+      object-fit: cover; background: #222; border: 1px solid var(--borde);
+    }
+    .marca b {
+      display: block; font-size: 10.5px; letter-spacing: 3px; text-transform: uppercase;
+      color: var(--tenue); font-weight: 700;
+    }
+
+    /* --- textos ---------------------------------------------------------------- */
+    h1 { margin: 0 0 5px; font-size: 25px; font-weight: 800; letter-spacing: -.4px; line-height: 1.15; color: var(--texto); }
+    .sub { margin: 0 0 18px; font-size: 12.5px; color: var(--tenue); }
+    .texto { font-size: 14px; line-height: 1.6; color: var(--tenue); margin: 0 0 20px; }
+    .texto strong { color: var(--texto); font-weight: 700; }
+
+    /* --- el contador de plazas -------------------------------------------------- */
+    .cupo {
+      display: inline-flex; align-items: center; gap: 7px; margin: 0 0 16px;
+      padding: 5px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;
+      background: var(--linea); border: 1px solid var(--borde); color: var(--exito);
+    }
+    .cupo i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .cupo.poco { color: var(--aviso); }
+    .cupo.nada { color: var(--alerta); }
+
+    /* --- quien eres -------------------------------------------------------------- */
+    .quien { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 4px 0 20px; }
+    .quien img { width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--borde); background: var(--linea); }
+    .quien span { font-size: 14.5px; font-weight: 700; }
+
+    /* --- los peldaños ------------------------------------------------------------ */
+    .pasos { display: flex; align-items: center; justify-content: center; margin: 2px 0 20px; padding: 0; list-style: none; }
+    .pasos li {
+      width: 36px; height: 36px; border-radius: 10px; flex: 0 0 auto;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 800;
+      background: var(--linea); border: 1px solid var(--borde); color: var(--tenue);
+      transition: all .3s;
+    }
+    .pasos .union { flex: 1 1 auto; max-width: 36px; height: 2px; background: var(--borde); position: relative; }
+    .pasos .union i { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--acento); }
+    .pasos .union.hecha i { animation: llena .45s .2s ease-out forwards; }
+    @keyframes llena { to { width: 100% } }
+    .pasos li.hecho { border-color: var(--acento); color: var(--acento2); }
+    .pasos li.ahora { background: var(--acento); border-color: var(--acento); color: #fff; }
+    @keyframes salta { 0% { transform: scale(1) } 45% { transform: scale(1.24) } 100% { transform: scale(1) } }
+    .pasos li.recien { animation: salta .45s .15s cubic-bezier(.3,1.5,.5,1) both; }
+
+    /* --- botones ------------------------------------------------------------------ */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+      width: 100%; padding: 14px 18px; border-radius: 10px;
+      font-size: 15px; font-weight: 700; text-decoration: none; border: 0; cursor: pointer;
+      background: var(--acento); color: #fff; transition: background .18s;
+      user-select: none;
+    }
+    .btn:hover { background: var(--acento2); }
+    .btn.discord { background: #5865F2; }
+    .btn.discord:hover { background: #4752c4; }
+    .btn.apagado { background: var(--linea); color: var(--tenue); pointer-events: none; }
+    .btn.secundario { background: var(--linea); color: var(--texto); border: 1px solid var(--borde); margin-top: 10px; }
+    .btn.secundario:hover { background: #2b2b38; }
+
+    /* --- el final (Pase de Acceso Otorgado) ----------------------------------------- */
+    .tic { width: 60px; height: 60px; margin: 0 auto 8px; display: block; }
+    .tic .aro {
+      fill: none; stroke: var(--borde); stroke-width: 3;
+      stroke-dasharray: 176; stroke-dashoffset: 176; animation: traza .5s cubic-bezier(.4,0,.2,1) forwards;
+    }
+    .tic .marca {
+      fill: none; stroke: var(--exito); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round;
+      stroke-dasharray: 44; stroke-dashoffset: 44; animation: traza .34s .45s cubic-bezier(.4,0,.2,1) forwards;
+    }
+    @keyframes traza { to { stroke-dashoffset: 0 } }
+
+    .token {
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 16px; font-weight: 600; letter-spacing: 1.2px;
+      background: var(--linea); border: 1px solid var(--borde); border-radius: 9px;
+      padding: 13px; margin: 0 0 7px; color: var(--aviso); word-break: break-all;
+      cursor: pointer; transition: border-color .18s, color .18s, background-color .18s;
+      user-select: all;
+    }
+    .token:hover { border-color: var(--aviso); background: #232332; }
+    .token.copiado { border-color: var(--exito); color: var(--exito); }
+    .copiar { font-size: 11px; color: var(--tenue); margin: 0 0 14px; min-height: 14px; }
+    .hasta {
+      display: inline-block; margin: 0 0 18px; padding: 6px 13px; border-radius: 8px;
+      font-size: 12.5px; font-weight: 600; color: var(--exito);
+      background: var(--linea); border: 1px solid var(--borde);
+    }
+    .aviso { font-size: 11.5px; color: var(--tenue); line-height: 1.55; margin: 16px 0 0; }
+    .codigo { font-size: 10.5px; color: #57536a; margin-top: 13px; letter-spacing: 1.5px; }
+    .salir { display: inline-block; margin: 16px 0 0; font-size: 11.5px; color: var(--tenue); text-decoration: none; cursor: pointer; }
+    .salir:hover { color: var(--acento2); }
+    .cuenta { font-variant-numeric: tabular-nums; font-weight: 800; }
+
+    footer { text-align: center; padding: 16px 0 22px; font-size: 11px; color: var(--tenue); }
+    footer a { color: var(--tenue); text-decoration: none; margin: 0 7px; }
+    footer a:hover { color: var(--acento2); }
+
+    /* A quien se marea con el movimiento */
+    @media (prefers-reduced-motion: reduce) {
+      .marco, .card > *, .anim-fade > *, .tic .aro, .tic .marca, .pasos li, .pasos .union i { animation: none !important; }
+      .tic .aro, .tic .marca { stroke-dashoffset: 0; }
+      .pasos .union.hecha i { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Barra superior para probar los pasos y personalizar -->
+  <aside class="toolbar" id="toolbar">
+    <div class="toolbar-title">
+      <span style="color:#fff; font-weight:600;">Pase de Acceso</span> &bull; <span id="mode-label">Modo Demostración</span>
+    </div>
+    <div class="toolbar-buttons">
+      <span>Ver estado:</span>
+      <button class="tool-btn active" onclick="cambiarEstado('login')">1. Inicio</button>
+      <button class="tool-btn" onclick="cambiarEstado('verificando')">2. Verificando</button>
+      <button class="tool-btn" onclick="cambiarEstado('concedido')">3. Pase Otorgado</button>
+      <button class="tool-btn toggle-hide" onclick="toggleToolbar()" title="Ocultar barra de pruebas">&times;</button>
+    </div>
+  </aside>
+
+  <main>
+    <div class="marco">
+      <div class="card anim-fade" id="contenedor-card">
+        <!-- El contenido se inyecta dinámicamente según el estado -->
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <a href="terms.html">Términos</a>·<a href="privacy.html">Privacidad</a>
+  </footer>
+
+  <script>
+    // Configuración del servidor y proyecto
+    const CONFIG = {
+      nombreProyecto: "Project LTF",
+      subtitulo: "Free Fire 2022 · servidor privado",
+      plazasTotales: 17100,
+      plazasLibres: 5272,
+      diasValidez: 30,
+      discordClientId: "TU_DISCORD_CLIENT_ID",
+      logoUrl: "logo.png"
+    };
+
+    // Estado actual de la aplicación
+    let estadoActual = 'login';
+    let usuarioDiscord = {
+      nombre: "JugadorPro",
+      tag: "#2026",
+      avatar: "https://cdn.discordapp.com/embed/avatars/0.png"
+    };
+    let tokenGenerado = "LTF-9F82-K49X-2026";
+
+    // Función para renderizar el estado seleccionado
+    function render() {
+      const card = document.getElementById('contenedor-card');
+      // Forzar reinicio de animación
+      card.classList.remove('anim-fade');
+      void card.offsetWidth;
+      card.classList.add('anim-fade');
+
+      if (estadoActual === 'login') {
+        // Estado 1: Pantalla principal de acceso
+        card.innerHTML = `
+          <div class="marca">
+            <img src="${CONFIG.logoUrl}" alt="" width="64" height="64" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect width=%2264%22 height=%2264%22 rx=%2216%22 fill=%22%238b5cf6%22/><text x=%2232%22 y=%2240%22 font-size=%2228%22 font-weight=%22bold%22 text-anchor=%22middle%22 fill=%22white%22>PS</text></svg>'">
+            <b>${CONFIG.nombreProyecto}</b>
+          </div>
+
+          <h1>Pase de acceso</h1>
+          <p class="sub">${CONFIG.subtitulo}</p>
+          <div class="cupo ${obtenerClaseCupo(CONFIG.plazasLibres, CONFIG.plazasTotales)}">
+            <i></i><span>${CONFIG.plazasLibres.toLocaleString('es-ES')} de ${CONFIG.plazasTotales.toLocaleString('es-ES')} plazas libres</span>
+          </div>
+          <p class="texto">Enlaza tu cuenta de Discord. Es la que llevará el acceso,
+            así que usa la misma con la que entras al juego.</p>
+          <button class="btn discord" onclick="conectarDiscord()">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+            </svg>
+            Entrar con Discord
+          </button>
+          <p class="aviso">Solo leemos tu nombre y si tu correo está confirmado.
+            No podemos ver tus mensajes ni escribir por ti.</p>
+        `;
+      } else if (estadoActual === 'verificando') {
+        // Estado 2: Proceso de verificación con peldaños
+        card.innerHTML = `
+          <div class="marca">
+            <img src="${CONFIG.logoUrl}" alt="" width="56" height="56" onerror="this.remove()">
+            <b>${CONFIG.nombreProyecto}</b>
+          </div>
+
+          <h1>Comprobando cuenta</h1>
+          <p class="sub">Validando requisitos de acceso</p>
+
+          <div class="quien">
+            <img src="${usuarioDiscord.avatar}" alt="Avatar">
+            <span>${usuarioDiscord.nombre}<span style="color:var(--tenue);font-weight:normal">${usuarioDiscord.tag}</span></span>
+          </div>
+
+          <ul class="pasos">
+            <li class="hecho">1</li>
+            <div class="union hecha"><i></i></div>
+            <li class="ahora recien">2</li>
+            <div class="union"><i></i></div>
+            <li>3</li>
+          </ul>
+
+          <p class="texto">Verificando vinculación de Discord y asignando una plaza en el servidor privado...</p>
+
+          <button class="btn" onclick="cambiarEstado('concedido')">Continuar y obtener pase</button>
+          <a class="salir" onclick="cambiarEstado('login')">Cancelar y volver</a>
+        `;
+      } else if (estadoActual === 'concedido') {
+        // Estado 3: Pase de acceso generado exitosamente
+        const fechaValidez = obtenerFechaExpiracion(CONFIG.diasValidez);
+        card.innerHTML = `
+          <svg class="tic" viewBox="0 0 60 60" aria-hidden="true">
+            <circle class="aro" cx="30" cy="30" r="28"></circle>
+            <polyline class="marca" points="18,31 26,39 42,21"></polyline>
+          </svg>
+
+          <h1>¡Acceso concedido!</h1>
+          <p class="sub">${CONFIG.subtitulo}</p>
+
+          <div class="quien" style="margin-bottom: 12px;">
+            <img src="${usuarioDiscord.avatar}" alt="Avatar" style="width:44px; height:44px;">
+            <span style="font-size:13.5px">${usuarioDiscord.nombre}</span>
+          </div>
+
+          <div class="token" id="token-box" onclick="copiarToken(this)" title="Haz clic para copiar">
+            ${tokenGenerado}
+          </div>
+          <div class="copiar" id="copiar-txt">Haz clic en el pase para copiarlo</div>
+
+          <div class="hasta">Válido hasta: <span class="cuenta">${fechaValidez}</span></div>
+
+          <p class="aviso">Usa este pase para ingresar al juego o vincularlo con el cliente del servidor.</p>
+          <a class="salir" onclick="cambiarEstado('login')">Cerrar sesión</a>
+        `;
+      }
+    }
+
+    function obtenerClaseCupo(libres, totales) {
+      if (libres <= 0) return 'nada';
+      if (libres / totales < 0.15) return 'poco';
+      return '';
+    }
+
+    function obtenerFechaExpiracion(dias) {
+      const d = new Date();
+      d.setDate(d.getDate() + dias);
+      const opciones = { day: 'numeric', month: 'short', year: 'numeric' };
+      return d.toLocaleDateString('es-ES', opciones);
+    }
+
+    function copiarToken(elemento) {
+      const texto = elemento.innerText.trim();
+      navigator.clipboard.writeText(texto).then(() => {
+        elemento.classList.add('copiado');
+        const txt = document.getElementById('copiar-txt');
+        if (txt) {
+          txt.textContent = '¡Pase copiado al portapapeles!';
+          txt.style.color = 'var(--exito)';
+        }
+        setTimeout(() => {
+          elemento.classList.remove('copiado');
+          if (txt) {
+            txt.textContent = 'Haz clic en el pase para copiarlo';
+            txt.style.color = 'var(--tenue)';
+          }
+        }, 2200);
+      }).catch(() => {
+        prompt('Copia tu pase manualmente:', texto);
+      });
+    }
+
+    function conectarDiscord() {
+      // Si existe un backend activo con /oauth/discord redirige allí:
+      if (window.location.protocol.startsWith('http') && window.location.pathname.startsWith('/acceso')) {
+        window.location.href = '/oauth/discord';
+        return;
+      }
+      // Modo simulación visual inmediata:
+      cambiarEstado('verificando');
+    }
+
+    function cambiarEstado(nuevoEstado) {
+      estadoActual = nuevoEstado;
+      document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
+      const indices = { 'login': 0, 'verificando': 1, 'concedido': 2 };
+      const btns = document.querySelectorAll('.toolbar-buttons .tool-btn');
+      if (btns[indices[nuevoEstado]]) {
+        btns[indices[nuevoEstado]].classList.add('active');
+      }
+      render();
+    }
+
+    function toggleToolbar() {
+      const bar = document.getElementById('toolbar');
+      if (bar) bar.style.display = 'none';
+    }
+
+    // Inicializar la vista
+    render();
+  </script>
+</body>
+</html>
