@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: projectltf
+    runtime: python
+    buildCommand: ""
+    startCommand: python server.py
+    envVars:
+      - key: PROJECT_NAME
+        value: Project LTF
+      - key: SUBTITLE
+        value: Free Fire 2022 · servidor privado
+      - key: TOTAL_SLOTS
+        value: "17100"
+      - key: FREE_SLOTS
+        value: "5272"
+      - key: TOKEN_PREFIX
+        value: LTF
+      - key: DISCORD_CLIENT_ID
+        value: "1545243904486670387"
+      - key: DISCORD_CLIENT_SECRET
+        value: "-T8jMX6XjXiAd_-DF4YCFGvMxhwPlOZZ"
+      - key: DISCORD_REDIRECT_URI
+        value: "https://projectltf.onrender.com/oauth/discord/callback"

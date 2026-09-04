@@ -1,0 +1,23 @@
+{
+  "name": "pase-acceso-discord",
+  "version": "1.0.0",
+  "description": "Sistema de Pase de Acceso con Discord OAuth2 y gestión de cupos para servidor privado",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "py": "python server.py"
+  },
+  "keywords": [
+    "discord-oauth2",
+    "access-pass",
+    "private-server",
+    "freefire-server"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}
